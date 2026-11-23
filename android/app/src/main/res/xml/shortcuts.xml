@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="change_server"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_server"
+        android:shortcutShortLabel="@string/shortcut_server">
+        <intent
+            android:action="ru.sdsk.nur.CHANGE_SERVER"
+            android:targetPackage="ru.sdsk.nur"
+            android:targetClass="ru.sdsk.nur.MainActivity" />
+    </shortcut>
+</shortcuts>

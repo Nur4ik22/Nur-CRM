@@ -1,0 +1,11 @@
+.gradle/
+build/
+local.properties
+*.jks
+*.keystore
+keystore.env
+google-services.json
+*fcm-service-account*.json
+.idea/
+*.iml
+.DS_Store

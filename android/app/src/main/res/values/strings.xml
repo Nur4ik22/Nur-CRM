@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nur</string>
+    <string name="shortcut_server">Сменить сервер</string>
+    <string name="channel_tickets">Заявки</string>
+    <string name="channel_tickets_description">Новые заявки, назначения, сообщения и смена статуса</string>
+</resources>

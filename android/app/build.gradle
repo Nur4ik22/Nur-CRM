@@ -1,0 +1,62 @@
+plugins {
+    id "com.android.application"
+}
+
+def prop = { String name, String fallback = "" ->
+    def v = System.getenv(name) ?: (project.findProperty(name) ?: fallback)
+    return v.toString()
+}
+def quoted = { String v -> "\"" + v.replace("\\", "\\\\").replace("\"", "\\\"") + "\"" }
+
+android {
+    namespace "ru.sdsk.nur"
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "ru.sdsk.nur"
+        minSdk 26
+        targetSdk 36
+        versionCode prop("NUR_VERSION_CODE", "1").toInteger()
+        versionName prop("NUR_VERSION_NAME", "1.0.0")
+        buildConfigField "String", "DEFAULT_SERVER", quoted(prop("NUR_DEFAULT_SERVER", "https://crm.s-dsk.ru"))
+        buildConfigField "String", "FCM_APP_ID", quoted(prop("NUR_FCM_APP_ID"))
+        buildConfigField "String", "FCM_API_KEY", quoted(prop("NUR_FCM_API_KEY"))
+        buildConfigField "String", "FCM_PROJECT_ID", quoted(prop("NUR_FCM_PROJECT_ID"))
+        buildConfigField "String", "FCM_SENDER_ID", quoted(prop("NUR_FCM_SENDER_ID"))
+    }
+
+    signingConfigs {
+        release {
+            def store = prop("NUR_KEYSTORE")
+            if (store) {
+                storeFile file(store)
+                storePassword prop("NUR_KEYSTORE_PASSWORD")
+                keyAlias prop("NUR_KEY_ALIAS", "nur")
+                keyPassword prop("NUR_KEY_PASSWORD", prop("NUR_KEYSTORE_PASSWORD"))
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            if (prop("NUR_KEYSTORE")) signingConfig signingConfigs.release
+        }
+    }
+
+    buildFeatures { buildConfig true }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.8.0"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0"
+    implementation platform("com.google.firebase:firebase-bom:35.2.0")
+    implementation "com.google.firebase:firebase-messaging"
+}
