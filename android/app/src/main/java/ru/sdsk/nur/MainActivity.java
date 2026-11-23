@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     static final String KEY_SERVER = "server";
     static final String EXTRA_URL = "url";
     static final String ACTION_CHANGE_SERVER = "ru.sdsk.nur.CHANGE_SERVER";
+    static final String ACTION_CHECK_UPDATE = "ru.sdsk.nur.CHECK_UPDATE";
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -121,6 +122,13 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
         }
+        Updater.check(this, ACTION_CHECK_UPDATE.equals(getIntent().getAction()));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Updater.install(this, false);
     }
 
     @Override
@@ -129,6 +137,10 @@ public class MainActivity extends AppCompatActivity {
         setIntent(intent);
         if (ACTION_CHANGE_SERVER.equals(intent.getAction())) {
             showSetup(null);
+            return;
+        }
+        if (ACTION_CHECK_UPDATE.equals(intent.getAction())) {
+            Updater.check(this, true);
             return;
         }
         String path = intent.getStringExtra(EXTRA_URL);

@@ -10,4 +10,14 @@
             android:targetPackage="ru.sdsk.nur"
             android:targetClass="ru.sdsk.nur.MainActivity" />
     </shortcut>
+    <shortcut
+        android:shortcutId="check_update"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_server"
+        android:shortcutShortLabel="@string/shortcut_update">
+        <intent
+            android:action="ru.sdsk.nur.CHECK_UPDATE"
+            android:targetPackage="ru.sdsk.nur"
+            android:targetClass="ru.sdsk.nur.MainActivity" />
+    </shortcut>
 </shortcuts>

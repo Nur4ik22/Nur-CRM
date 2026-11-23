@@ -17,7 +17,8 @@ android {
         minSdk 26
         targetSdk 36
         versionCode prop("NUR_VERSION_CODE", "1").toInteger()
-        versionName prop("NUR_VERSION_NAME", "1.0.0")
+        versionName prop("NUR_VERSION_NAME", "1.1.0")
+        buildConfigField "String", "UPDATE_REPO", quoted(prop("NUR_UPDATE_REPO", "Nur4ik22/Nur-CRM"))
         buildConfigField "String", "DEFAULT_SERVER", quoted(prop("NUR_DEFAULT_SERVER", "https://crm.s-dsk.ru"))
         buildConfigField "String", "FCM_APP_ID", quoted(prop("NUR_FCM_APP_ID"))
         buildConfigField "String", "FCM_API_KEY", quoted(prop("NUR_FCM_API_KEY"))
