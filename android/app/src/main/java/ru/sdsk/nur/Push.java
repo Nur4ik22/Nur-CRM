@@ -26,21 +26,74 @@ final class Push {
 
     private Push() { }
 
+    private static final String KEY_CONFIG = "push_config";
+
     static void init(Context context) {
-        if (ready || BuildConfig.FCM_APP_ID.isEmpty()) return;
+        if (ready) return;
+        FirebaseOptions options = options(context);
+        if (options == null) return;
         try {
-            if (FirebaseApp.getApps(context).isEmpty()) {
-                FirebaseApp.initializeApp(context, new FirebaseOptions.Builder()
-                        .setApplicationId(BuildConfig.FCM_APP_ID)
-                        .setApiKey(BuildConfig.FCM_API_KEY)
-                        .setProjectId(BuildConfig.FCM_PROJECT_ID)
-                        .setGcmSenderId(BuildConfig.FCM_SENDER_ID)
-                        .build());
-            }
+            if (FirebaseApp.getApps(context).isEmpty()) FirebaseApp.initializeApp(context, options);
             ready = true;
         } catch (RuntimeException e) {
             ready = false;
         }
+    }
+
+    private static FirebaseOptions options(Context context) {
+        String appId = BuildConfig.FCM_APP_ID, apiKey = BuildConfig.FCM_API_KEY;
+        String projectId = BuildConfig.FCM_PROJECT_ID, senderId = BuildConfig.FCM_SENDER_ID;
+        if (appId.isEmpty()) {
+            String saved = context.getSharedPreferences(MainActivity.PREFS, Context.MODE_PRIVATE).getString(KEY_CONFIG, null);
+            if (saved == null) return null;
+            try {
+                JSONObject json = new JSONObject(saved);
+                appId = json.getString("app_id");
+                apiKey = json.getString("api_key");
+                projectId = json.getString("project_id");
+                senderId = json.getString("sender_id");
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return new FirebaseOptions.Builder().setApplicationId(appId).setApiKey(apiKey)
+                .setProjectId(projectId).setGcmSenderId(senderId).build();
+    }
+
+    /** Reads push settings from the CRM server so push can be switched on without a new APK. */
+    static void refreshConfig(Context context, String server, Runnable changed) {
+        IO.execute(() -> {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) new URL(server + "/api/v1/mobile/config").openConnection();
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
+                if (connection.getResponseCode() != 200) return;
+                StringBuilder text = new StringBuilder();
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(
+                        connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) text.append(line);
+                }
+                JSONObject pushConfig = new JSONObject(text.toString()).optJSONObject("push");
+                String value = pushConfig == null ? null : pushConfig.toString();
+                android.content.SharedPreferences prefs = context.getSharedPreferences(MainActivity.PREFS, Context.MODE_PRIVATE);
+                String old = prefs.getString(KEY_CONFIG, null);
+                if (value == null ? old == null : value.equals(old)) return;
+                if (value == null) prefs.edit().remove(KEY_CONFIG).apply();
+                else prefs.edit().putString(KEY_CONFIG, value).apply();
+                forget(context);
+                if (ready && old != null && !FirebaseApp.getApps(context).isEmpty()) {
+                    FirebaseApp.getInstance().delete();
+                    ready = false;
+                }
+                init(context);
+                if (changed != null) changed.run();
+            } catch (Exception ignored) {
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+        });
     }
 
     static void forget(Context context) {

@@ -362,6 +362,9 @@ public class MainActivity extends AppCompatActivity {
 
         web.setDownloadListener((url, userAgent, disposition, mime, length) -> download(url, userAgent, disposition, mime));
         web.loadUrl(absolute(path));
+        String configured = server;
+        Push.refreshConfig(getApplicationContext(), configured,
+                () -> main.post(() -> Push.register(MainActivity.this, configured)));
     }
 
     private View buildError() {
