@@ -47,6 +47,10 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -274,7 +278,28 @@ public class MainActivity extends AppCompatActivity {
             attempt.run();
             return true;
         });
-        setContentView(box);
+        setInsetContent(box);
+    }
+
+    /** Android 15+ draws apps edge-to-edge: keep content out from under the status bar, cutout,
+     *  navigation bar and keyboard, painting the status-bar strip in the accent colour. */
+    private void setInsetContent(View content) {
+        FrameLayout frame = new FrameLayout(this);
+        frame.setBackgroundColor(ContextCompat.getColor(this, R.color.accent));
+        if (content.getBackground() == null) {
+            content.setBackgroundColor(ContextCompat.getColor(this, R.color.background));
+        }
+        frame.addView(content, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        ViewCompat.setOnApplyWindowInsetsListener(frame, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                    | WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.ime());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
+        setContentView(frame);
+        WindowCompat.getInsetsController(getWindow(), frame).setAppearanceLightStatusBars(false);
+        ViewCompat.requestApplyInsets(frame);
     }
 
     private static String check(String url) {
@@ -307,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
         errorView = buildError();
         errorView.setVisibility(View.GONE);
         root.addView(errorView);
-        setContentView(root);
+        setInsetContent(root);
 
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
